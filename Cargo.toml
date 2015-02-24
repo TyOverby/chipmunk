@@ -1,0 +1,8 @@
+[package]
+
+name = "chipmunk"
+version = "0.0.1"
+authors = ["TyOverby <ty@pre-alpha.com>"]
+
+[dependencies.chipmunk-sys]
+git = "https://github.com/TyOverby/chipmunk-sys.git"
