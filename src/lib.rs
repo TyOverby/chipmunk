@@ -1,4 +1,4 @@
 extern crate "chipmunk-sys" as chip;
 
-mod space;
+pub mod space;
 mod util;

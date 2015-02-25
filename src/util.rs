@@ -11,7 +11,6 @@ pub unsafe fn decr_rc<T>(rc: &Rc<T>) {
     mem::drop(cln);
 }
 
-
 #[cfg(test)]
 mod test {
     use std::rc::Rc;
