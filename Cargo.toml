@@ -3,6 +3,12 @@
 name = "chipmunk"
 version = "0.0.1"
 authors = ["TyOverby <ty@pre-alpha.com>"]
+license = "MIT"
 
-[dependencies.chipmunk-sys]
-git = "https://github.com/TyOverby/chipmunk-sys.git"
+repository = "https://github.com/TyOverby/chipmunk"
+description = "Rust bindings to the chipmunk-2d physics engine.  This crate is a work in progress."
+
+
+[dependencies]
+
+chipmunk-sys = "0.0.*"

@@ -1,12 +1,12 @@
 use std::any::Any;
-use std::mem;
 use std::rc::Rc;
 use std::cell::RefCell;
+use std::mem;
 
 use chip;
 
 macro_rules! forward {
-    // REF
+    // &self
     ($name:ident (&self, $($arg:ident : $typ:ty),*) -> $ret:ty, $(#[$doc:meta])*) => {
         pub fn $name (&self, $($arg : $typ),*) -> $ret {
             $(#![$doc])*
@@ -20,7 +20,7 @@ macro_rules! forward {
         }
     };
 
-    // MUT REF
+    // &mut self
     ($name:ident (&mut self, $($arg:ident : $typ:ty),*) -> $ret:ty, $(#[$doc:meta])*) => {
         pub fn $name (&mut self, $($arg : $typ),*) -> $ret {
             $(#![$doc])*
