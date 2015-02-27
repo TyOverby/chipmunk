@@ -17,11 +17,57 @@ pub struct Body {
 }
 
 impl Body {
-    fn new(mass: f64, moment: f64) -> Body {
+    pub fn new(mass: f64, moment: f64) -> Body {
         Body {
             raw: Rc::new(UnsafeCell::new(BodyRaw::new(mass, moment)))
         }
     }
+
+    forward!(angle_rad(&self) -> f64,
+    /// Returns the rotation angle of the body in radians.
+    );
+
+    forward!(angle_deg(&self) -> f64,
+    /// Returns the rotation angle fo the body in degrees.
+    );
+
+    forward!(angular_velocity_rad(&self) -> f64,
+    /// Returns the angular velocity in radians / second.
+    );
+
+    forward!(angular_velocity_deg(&self) -> f64,
+    /// Returns the angular velocity in degrees / second.
+    );
+
+    forward!(center_of_gravity(&self) -> (f64, f64),
+    /// Returns the location of the center of gravity in
+    /// local coordinates.
+    );
+
+    forward!(force(&self) -> (f64, f64),
+    /// Returns the force acting on the body.
+    );
+
+    forward!(mass(&self) -> f64,
+    /// Returns the mass of the body.
+    );
+
+    forward!(moment(&self) -> f64,
+    /// Returns the moment of inertia of the body.
+    );
+
+    forward!(position(&self) -> (f64, f64),
+    /// Returns the position of the body in world space.
+    );
+
+    forward!(torque(&self) -> f64,
+    /// Returns the torque acting on the body.
+    );
+
+    forward!(velocity(&self) -> (f64, f64),
+    /// Returns the velocity of the body.
+    );
+
 
     forward!(set_angle_rad(&mut self, angle: f64) -> (),
     /// Sets the angle of the object in space (in radians).
@@ -38,6 +84,41 @@ impl Body {
     forward!(set_angular_velocity_deg(&mut self, ang_vel: f64) -> (),
     /// Sets the angular velocity in degrees / second.
     ) ;
+
+    forward!(set_center_of_gravity(&mut self, x: f64, y: f64) -> (),
+    /// Sets the position of the center of gravity on this body.
+    ///
+    /// The center of gravity is in local coordinates.
+    );
+
+    forward!(set_force(&mut self, x: f64, y: f64) -> (),
+    /// Sets the force applied to the body.
+    ///
+    /// The force is not reset during each physics step.  If you want
+    /// to reset the force, you must do that manually.
+    );
+
+    forward!(set_mass(&mut self, mass: f64) -> (),
+    /// Sets the mass of the body.
+    );
+
+    forward!(set_moment(&mut self, moment: f64) -> (),
+    /// Sets the moment of inertia of the body.
+    ///
+    /// The moment of inertia is the rotational mass of the body.
+    );
+
+    forward!(set_position(&mut self, x: f64, y: f64) -> (),
+    /// Sets the position of the body in world coordinates.
+    );
+
+    forward!(set_torque(&mut self, torque: f64) -> (),
+    /// Sets the torque applied to the body.
+    );
+
+    forward!(set_velocity(&mut self, x: f64, y: f64) -> (),
+    /// Directly sets the velocity of the body.
+    );
 }
 
 impl BodyRaw {
@@ -49,6 +130,74 @@ impl BodyRaw {
             };
             chip::cpBodyInit(&mut ret.cp_body, mass, moment);
             ret
+        }
+    }
+
+    fn angle_rad(&self) -> f64 {
+        unsafe {
+            chip::cpBodyGetAngle(&self.cp_body)
+        }
+    }
+
+    fn angle_deg(&self) -> f64 {
+        use std::f64::consts::PI;
+        self.angle_rad() * (PI / 180.0)
+    }
+
+    fn angular_velocity_rad(&self) -> f64 {
+        unsafe {
+            chip::cpBodyGetAngularVelocity(&self.cp_body)
+        }
+    }
+
+    fn angular_velocity_deg(&self) -> f64 {
+        use std::f64::consts::PI;
+        self.angular_velocity_rad() * (PI / 180.0)
+    }
+
+    fn center_of_gravity(&self) -> (f64, f64) {
+        unsafe {
+            let v = chip::cpBodyGetCenterOfGravity(&self.cp_body);
+            (v.x, v.y)
+        }
+    }
+
+    fn force(&self) -> (f64, f64) {
+        unsafe {
+            let v = chip::cpBodyGetForce(&self.cp_body);
+            (v.x, v.y)
+        }
+    }
+
+    fn mass(&self) -> f64 {
+        unsafe {
+            chip::cpBodyGetMass(&self.cp_body)
+        }
+    }
+
+    fn moment(&self) -> f64 {
+        unsafe {
+            chip::cpBodyGetMoment(&self.cp_body)
+        }
+    }
+
+    fn position(&self) -> (f64, f64) {
+        unsafe {
+            let v = chip::cpBodyGetPosition(&self.cp_body);
+            (v.x, v.y)
+        }
+    }
+
+    fn torque(&self) -> f64 {
+        unsafe {
+            chip::cpBodyGetTorque(&self.cp_body)
+        }
+    }
+
+    fn velocity(&self) -> (f64, f64) {
+        unsafe {
+            let v = chip::cpBodyGetVelocity(&self.cp_body);
+            (v.x, v.y)
         }
     }
 

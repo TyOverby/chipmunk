@@ -1,3 +1,4 @@
+/*
 use std::mem;
 use std::rc::Rc;
 
@@ -75,4 +76,4 @@ mod test {
         }
         assert!(!dropped);
     }
-}
+}*/

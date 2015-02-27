@@ -1,3 +1,5 @@
+#![feature(core)]
+
 extern crate "chipmunk-sys" as chip;
 
 macro_rules! forward {
