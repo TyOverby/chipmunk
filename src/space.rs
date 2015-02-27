@@ -1,6 +1,6 @@
 use std::any::Any;
 use std::rc::Rc;
-use std::cell::RefCell;
+use std::cell::UnsafeCell;
 use std::mem;
 
 use chip;
@@ -14,13 +14,13 @@ struct SpaceRaw {
 }
 
 pub struct Space {
-    raw: Rc<RefCell<SpaceRaw>>
+    raw: Rc<UnsafeCell<SpaceRaw>>
 }
 
 impl Space {
     pub fn new() -> Space {
         Space {
-            raw: Rc::new(RefCell::new(SpaceRaw::new()))
+            raw: Rc::new(UnsafeCell::new(SpaceRaw::new()))
         }
     }
 
@@ -151,14 +151,15 @@ impl Space {
 }
 
 impl UserData for Space {
-    fn get_box(&self) -> Option<&Box<Any>> {
-        self.raw.borrow().get_box()
+    fn get_userdata_box(&self) -> &Option<Box<Any>> {
+        unsafe {
+            (*self.raw.get()).get_userdata_box()
+        }
     }
-    fn get_mut_box(&mut self) -> Option<&mut Box<Any>> {
-        self.raw.borrow_mut().get_mut_box()
-    }
-    fn set_box(&mut self, data: Box<Any>) {
-        self.raw.borrow_mut().set_box(data)
+    fn get_userdata_mut_box(&mut self) -> &mut Option<Box<Any>> {
+        unsafe {
+            (*self.raw.get()).get_userdata_mut_box()
+        }
     }
 }
 
@@ -282,13 +283,10 @@ impl Drop for SpaceRaw {
 }
 
 impl UserData for SpaceRaw {
-    fn get_box(&self) -> Option<&Box<Any>> {
-        self.user_data.as_ref()
+    fn get_userdata_box(&self) -> &Option<Box<Any>> {
+        &self.user_data
     }
-    fn get_mut_box(&mut self) -> Option<&mut Box<Any>> {
-        self.user_data.as_mut()
-    }
-    fn set_box(&mut self, data: Box<Any>) {
-        self.user_data = Some(data);
+    fn get_userdata_mut_box(&mut self) -> &mut Option<Box<Any>> {
+        &mut self.user_data
     }
 }

@@ -1,7 +1,9 @@
 use std::any::Any;
 use std::rc::Rc;
-use std::cell::RefCell;
+use std::cell::UnsafeCell;
 use std::mem;
+
+use super::user_data::UserData;
 
 use chip;
 
@@ -11,10 +13,45 @@ struct BodyRaw {
 }
 
 pub struct Body {
-    raw: Rc<RefCell<BodyRaw>>
+    raw: Rc<UnsafeCell<BodyRaw>>
+}
+
+impl Body {
+    fn new(mass: f64, moment: f64) -> Body {
+        Body {
+            raw: Rc::new(UnsafeCell::new(BodyRaw::new(mass, moment)))
+        }
+    }
+
+    forward!(set_angle_rad(&mut self, angle: f64) -> (),
+    /// Sets the angle of the object in space (in radians).
+    );
+
+    forward!(set_angle_deg(&mut self, angle: f64) -> (),
+    /// Sets the angle of the object in space (in degrees).
+    );
+
+    forward!(set_angular_velocity_rad(&mut self, ang_vel: f64) -> (),
+    /// Sets the angular velocity in radians / second.
+    ) ;
+
+    forward!(set_angular_velocity_deg(&mut self, ang_vel: f64) -> (),
+    /// Sets the angular velocity in degrees / second.
+    ) ;
 }
 
 impl BodyRaw {
+    fn new(mass: f64, moment: f64) -> BodyRaw {
+        unsafe {
+            let mut ret = BodyRaw {
+                cp_body: mem::uninitialized(),
+                user_data: None
+            };
+            chip::cpBodyInit(&mut ret.cp_body, mass, moment);
+            ret
+        }
+    }
+
     fn set_angle_rad(&mut self, angle: f64) {
         unsafe {
             chip::cpBodySetAngle(&mut self.cp_body, angle);
@@ -26,10 +63,18 @@ impl BodyRaw {
         self.set_angle_rad(angle * (180.0 / PI));
     }
 
-    fn set_angular_velocity(&mut self, ang_vel: f64) {
+    fn set_angular_velocity_rad(&mut self, ang_vel: f64) {
         unsafe {
             chip::cpBodySetAngularVelocity(&mut self.cp_body,
                                            ang_vel)
+        }
+    }
+
+    fn set_angular_velocity_deg(&mut self, ang_vel: f64) {
+        use std::f64::consts::PI;
+        unsafe {
+            chip::cpBodySetAngularVelocity(&mut self.cp_body,
+                                           ang_vel * (180.0 / PI))
         }
     }
 
@@ -77,4 +122,13 @@ impl BodyRaw {
 
     // fn set_type
     // fn setPositionUpdateFunc
+}
+
+impl UserData for BodyRaw {
+    fn get_userdata_box(&self) -> &Option<Box<Any>> {
+        &self.user_data
+    }
+    fn get_userdata_mut_box(&mut self) -> &mut Option<Box<Any>> {
+        &mut self.user_data
+    }
 }

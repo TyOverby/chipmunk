@@ -5,13 +5,18 @@ macro_rules! forward {
     ($name:ident (&self, $($arg:ident : $typ:ty),*) -> $ret:ty, $(#[$doc:meta])*) => {
         pub fn $name (&self, $($arg : $typ),*) -> $ret {
             $(#![$doc])*
-            self.raw.borrow().$name($($arg),*)
+
+            unsafe {
+                (*self.raw.get()).$name($($arg),*)
+            }
         }
     };
     ($name:ident (&self) -> $ret:ty, $(#[$doc:meta])*) => {
         pub fn $name (&self) -> $ret {
             $(#![$doc])*
-            self.raw.borrow().$name()
+            unsafe {
+                (*self.raw.get()).$name()
+            }
         }
     };
 
@@ -19,13 +24,17 @@ macro_rules! forward {
     ($name:ident (&mut self, $($arg:ident : $typ:ty),*) -> $ret:ty, $(#[$doc:meta])*) => {
         pub fn $name (&mut self, $($arg : $typ),*) -> $ret {
             $(#![$doc])*
-            self.raw.borrow_mut().$name($($arg),*)
+            unsafe {
+                (*self.raw.get()).$name($($arg),*)
+            }
         }
     };
     ($name:ident (&mut self) -> $ret:ty, $(#[$doc:meta])*) => {
         pub fn $name (&mut self) -> $ret {
             $(#![$doc])*
-            self.raw.borrow_mut().$name()
+            unsafe {
+                self.raw.get().$name()
+            }
         }
     };
 }
