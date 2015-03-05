@@ -23,6 +23,18 @@ impl Body {
         }
     }
 
+    // TODO: hide doc
+    pub unsafe fn duplicate(&mut self) -> Body {
+        Body {
+            raw: self.raw.clone()
+        }
+    }
+
+    // TODO: hide doc
+    pub unsafe fn cp_body(&mut self) -> *mut chip::cpBody {
+        &mut (*self.raw.get()).cp_body
+    }
+
     forward!(angle_rad(&self) -> f64,
     /// Returns the rotation angle of the body in radians.
     );
@@ -279,5 +291,13 @@ impl UserData for BodyRaw {
     }
     fn get_userdata_mut_box(&mut self) -> &mut Option<Box<Any>> {
         &mut self.user_data
+    }
+}
+
+impl Drop for BodyRaw {
+    fn drop(&mut self) {
+        unsafe {
+            chip::cpBodyDestroy(&mut self.cp_body);
+        }
     }
 }
