@@ -39,6 +39,30 @@ impl Shape {
         }
     }
 
+    forward!(density(&self) -> f64,
+    /// Returns the density of this shape.
+    );
+
+    forward!(elasticity(&self) -> f64,
+    /// Returns the elasticity of this shape.
+    );
+
+    forward!(friction(&self) -> f64,
+    /// Returns the friction of this shape.
+    );
+
+    forward!(mass(&self) -> f64,
+    /// Returns the mass of this shape.
+    );
+
+    forward!(is_sensor(&self) -> bool,
+    /// Returns whether this shape is a sensor or not.
+    );
+
+    forward!(surface_velocity(&self) -> (f64, f64),
+    /// Returns the surface velocity of this collision shape.
+    );
+
     forward!(set_density(&mut self, density: f64) -> (),
     /// Sets the density of the shape.
     );
@@ -108,6 +132,44 @@ impl ShapeRaw {
         }
     }
 
+    fn density(&self) -> f64 {
+        unsafe {
+            chip::cpShapeGetDensity(self.cp_shape)
+        }
+    }
+
+    fn elasticity(&self) -> f64 {
+        unsafe {
+            chip::cpShapeGetElasticity(self.cp_shape)
+        }
+    }
+
+    fn friction(&self) -> f64 {
+        unsafe {
+            chip::cpShapeGetFriction(self.cp_shape)
+        }
+    }
+
+    fn mass(&self) -> f64 {
+        unsafe {
+            chip::cpShapeGetMass(self.cp_shape)
+        }
+    }
+
+    fn is_sensor(&self) -> bool {
+        unsafe {
+            let r = chip::cpShapeGetSensor(self.cp_shape);
+            if r == 0 {false} else {true}
+        }
+    }
+
+    fn surface_velocity(&self) -> (f64, f64) {
+        unsafe {
+            let v = chip::cpShapeGetSurfaceVelocity(self.cp_shape);
+            (v.x, v.y)
+        }
+    }
+
     fn set_density(&mut self, density: f64) {
         unsafe {
             chip::cpShapeSetDensity(self.cp_shape, density);
@@ -156,5 +218,15 @@ impl Drop for ShapeRaw {
         unsafe {
             chip::cpShapeFree(self.cp_shape);
         }
+    }
+}
+
+impl UserData for ShapeRaw {
+    fn get_userdata_box(&self) -> &Option<Box<Any>> {
+        &self.user_data
+    }
+
+    fn get_userdata_mut_box(&mut self) -> &mut Option<Box<Any>> {
+        &mut self.user_data
     }
 }
