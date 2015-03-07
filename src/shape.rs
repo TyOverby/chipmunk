@@ -2,40 +2,57 @@ use std::any::Any;
 use std::rc::Rc;
 use std::cell::UnsafeCell;
 use std::mem;
+use std::marker::PhantomData;
 
 use super::user_data::UserData;
 use super::body::Body;
 
 use chip;
 
+use void::Void;
 
-
-pub struct Shape {
-    raw: Rc<UnsafeCell<ShapeRaw>>
+pub struct Shape<T> {
+    raw: Rc<UnsafeCell<ShapeRaw<T>>>
 }
 
-struct ShapeRaw {
+struct ShapeRaw<T> {
     cp_shape: *mut chip::cpShape,
     user_data: Option<Box<Any>>,
-    attached_body: Body
+    _attached_body: Body<Void>,
+    _phantom: PhantomData<T>
 }
 
-impl Shape {
-    pub fn new_circle(body: &mut Body, radius: f64, offset: (f64, f64)) -> Shape {
+impl <T> Shape<T> {
+    pub fn new_circle<A>(body: &mut Body<A>, radius: f64, offset: (f64, f64)) -> Shape<T> {
         Shape {
             raw: Rc::new(UnsafeCell::new(ShapeRaw::new_circle(body, radius, offset)))
         }
     }
 
-    pub fn new_box(body: &mut Body, width: f64, height: f64, corner_radius: f64) -> Shape {
+    pub fn new_box<A>(body: &mut Body<A>, width: f64, height: f64, corner_radius: f64) -> Shape<T> {
         Shape {
             raw: Rc::new(UnsafeCell::new(ShapeRaw::new_box(body, width, height, corner_radius)))
         }
     }
 
-    pub fn new_poly(body: &mut Body, vertices:&[(f64, f64)], radius: f64) -> Shape {
+    pub fn new_poly<A>(body: &mut Body<A>, vertices:&[(f64, f64)], radius: f64) -> Shape<T> {
         Shape {
             raw: Rc::new(UnsafeCell::new(ShapeRaw::new_poly(body, vertices, radius)))
+        }
+    }
+
+    // TODO: hide from docs
+    pub fn get_cp_shape(&mut self) -> *mut chip::cpShape {
+        unsafe {
+            (*self.raw.get()).cp_shape
+        }
+    }
+
+    // TODO: hide from docs
+    pub fn duplicate(&mut self) -> Shape<Void> {
+        use std::mem::transmute;
+        unsafe {
+            transmute(Shape {raw: self.raw.clone()})
         }
     }
 
@@ -94,40 +111,43 @@ impl Shape {
     );
 }
 
-impl ShapeRaw {
-    fn new_circle(body: &mut Body, radius: f64, offset: (f64, f64)) -> ShapeRaw {
+impl <T> ShapeRaw<T> {
+    fn new_circle<A>(body: &mut Body<A>, radius: f64, offset: (f64, f64)) -> ShapeRaw<T> {
         unsafe {
             ShapeRaw {
                 cp_shape: chip::cpCircleShapeNew(
-                                            body.cp_body(),
+                                            body.get_cp_body(),
                                             radius,
                                             chip::cpv(offset.0, offset.1)),
                 user_data: None,
-                attached_body: body.duplicate()
+                _attached_body: body.duplicate(),
+                _phantom: PhantomData
             }
         }
     }
 
-    fn new_box(body: &mut Body, width: f64, height: f64, corner_radius: f64) -> ShapeRaw {
+    fn new_box<A>(body: &mut Body<A>, width: f64, height: f64, corner_radius: f64) -> ShapeRaw<T> {
         unsafe {
             ShapeRaw {
-                cp_shape: chip::cpBoxShapeNew(body.cp_body(), width, height, corner_radius),
+                cp_shape: chip::cpBoxShapeNew(body.get_cp_body(), width, height, corner_radius),
                 user_data: None,
-                attached_body: body.duplicate()
+                _attached_body: body.duplicate(),
+                _phantom: PhantomData
             }
         }
     }
 
-    fn new_poly(body: &mut Body, vertices: &[(f64, f64)], radius: f64) -> ShapeRaw {
+    fn new_poly<A>(body: &mut Body<A>, vertices: &[(f64, f64)], radius: f64) -> ShapeRaw<T> {
         unsafe {
             ShapeRaw {
                 cp_shape: chip::cpPolyShapeNewRaw(
-                              body.cp_body(),
+                              body.get_cp_body(),
                               vertices.len() as i32,
                               mem::transmute(vertices.as_ptr()),
                               radius),
                 user_data: None,
-                              attached_body: body.duplicate()
+                _attached_body: body.duplicate(),
+                _phantom: PhantomData
             }
         }
     }
@@ -213,7 +233,8 @@ impl ShapeRaw {
     }
 }
 
-impl Drop for ShapeRaw {
+#[unsafe_destructor]
+impl <T> Drop for ShapeRaw<T> {
     fn drop(&mut self) {
         unsafe {
             chip::cpShapeFree(self.cp_shape);
@@ -221,7 +242,8 @@ impl Drop for ShapeRaw {
     }
 }
 
-impl UserData for ShapeRaw {
+
+impl <T: 'static> UserData<T> for ShapeRaw<T> {
     fn get_userdata_box(&self) -> &Option<Box<Any>> {
         &self.user_data
     }

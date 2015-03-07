@@ -2,26 +2,45 @@ use std::any::Any;
 use std::rc::Rc;
 use std::cell::UnsafeCell;
 use std::mem;
+use std::marker::PhantomData;
 
 use chip;
+use void::Void;
 
 use super::user_data::UserData;
+use super::body::Body;
+use super::shape::Shape;
 
 
-struct SpaceRaw {
+struct SpaceRaw<T=Void> {
     cp_space: chip::cpSpace,
-    user_data: Option<Box<Any>>
+    user_data: Option<Box<Any>>,
+    bodies: Vec<Body<Void>>,
+    shapes: Vec<Shape<Void>>,
+    _phantom: PhantomData<T>,
 }
 
-pub struct Space {
-    raw: Rc<UnsafeCell<SpaceRaw>>
+pub struct Space<T=Void> {
+    raw: Rc<UnsafeCell<SpaceRaw<T>>>,
 }
 
-impl Space {
-    pub fn new() -> Space {
+impl <T> Space<T> {
+    pub fn new() -> Space<T> {
         Space {
             raw: Rc::new(UnsafeCell::new(SpaceRaw::new()))
         }
+    }
+
+    pub fn duplicate_homogenous(&mut self) -> Space<Void> {
+        use std::mem::transmute;
+        unsafe { transmute(Space{ raw: self.raw.clone()}) }
+    }
+
+    pub fn swap_userdata<A: 'static>(self, new_userdata: A) -> Space<A> {
+        use std::mem::transmute;
+        let mut n: Space<A> = unsafe { transmute(Space{ raw: self.raw.clone()}) };
+        n.set_user_data(new_userdata);
+        n
     }
 
     /// This function does not release the refcount on the
@@ -32,6 +51,18 @@ impl Space {
 
     pub unsafe fn from_raw_ptr(ptr: *const ()) -> Space {
         mem::transmute(ptr)
+    }
+
+    pub fn add_body<A>(&mut self, body: &mut Body<A>){
+        unsafe {
+            (*self.raw.get()).add_body(body);
+        }
+    }
+
+    pub fn add_shape<A>(&mut self, shape: &mut Shape<A>){
+        unsafe {
+            (*self.raw.get()).add_shape(shape);
+        }
     }
 
     forward!(gravity(&self) -> (f64, f64),
@@ -150,7 +181,16 @@ impl Space {
 
 }
 
-impl UserData for Space {
+impl <T: 'static> UserData<T> for SpaceRaw<T> {
+    fn get_userdata_box(&self) -> &Option<Box<Any>> {
+        &self.user_data
+    }
+    fn get_userdata_mut_box(&mut self) -> &mut Option<Box<Any>> {
+        &mut self.user_data
+    }
+}
+
+impl <T: 'static> UserData<T> for Space<T> {
     fn get_userdata_box(&self) -> &Option<Box<Any>> {
         unsafe {
             (*self.raw.get()).get_userdata_box()
@@ -163,17 +203,38 @@ impl UserData for Space {
     }
 }
 
-impl SpaceRaw {
-    fn new() -> SpaceRaw {
+impl <T> SpaceRaw <T> {
+    fn new() -> SpaceRaw<T> {
         unsafe {
             let mut spr = SpaceRaw {
                 cp_space: mem::uninitialized(),
-                user_data: None
+                user_data: None,
+                bodies: Vec::new(),
+                shapes: Vec::new(),
+                _phantom: PhantomData
             };
             chip::cpSpaceInit(&mut spr.cp_space);
             spr
         }
     }
+
+    fn add_body<B>(&mut self, body: &mut Body<B>) {
+        unsafe {
+            self.bodies.push(body.duplicate());
+            chip::cpSpaceAddBody(&mut self.cp_space, body.get_cp_body());
+        }
+    }
+
+    fn add_shape<B>(&mut self, shape: &mut Shape<B>) {
+        unsafe {
+            self.shapes.push(shape.duplicate());
+            chip::cpSpaceAddShape(&mut self.cp_space, shape.get_cp_shape());
+        }
+    }
+
+    //
+    // GETTERS
+    //
 
     fn gravity(&self) -> (f64, f64) {
         unsafe {
@@ -224,6 +285,10 @@ impl SpaceRaw {
         }
     }
 
+    //
+    // Setters
+    //
+
     fn set_gravity(&mut self, ax: f64, ay: f64) {
         unsafe {
             chip::cpSpaceSetGravity(&mut self.cp_space, chip::cpv(ax, ay));
@@ -273,20 +338,12 @@ impl SpaceRaw {
     }
 }
 
-impl Drop for SpaceRaw {
+#[unsafe_destructor]
+impl <T> Drop for SpaceRaw<T> {
     fn drop(&mut self) {
         // TODO: destroy all bodies and constraints that are attached to this.
         unsafe {
             chip::cpSpaceDestroy(&mut self.cp_space);
         }
-    }
-}
-
-impl UserData for SpaceRaw {
-    fn get_userdata_box(&self) -> &Option<Box<Any>> {
-        &self.user_data
-    }
-    fn get_userdata_mut_box(&mut self) -> &mut Option<Box<Any>> {
-        &mut self.user_data
     }
 }

@@ -2,36 +2,39 @@ use std::any::Any;
 use std::rc::Rc;
 use std::cell::UnsafeCell;
 use std::mem;
+use std::marker::PhantomData;
 
 use super::user_data::UserData;
 
 use chip;
 
-struct BodyRaw {
+use void::Void;
+
+struct BodyRaw<T> {
     cp_body: chip::cpBody,
-    user_data: Option<Box<Any>>
+    user_data: Option<Box<Any>>,
+    _phantom: PhantomData<T>
 }
 
-pub struct Body {
-    raw: Rc<UnsafeCell<BodyRaw>>
+pub struct Body<T> {
+    raw: Rc<UnsafeCell<BodyRaw<T>>>
 }
 
-impl Body {
-    pub fn new(mass: f64, moment: f64) -> Body {
+impl <T> Body<T> {
+    pub fn new(mass: f64, moment: f64) -> Body<T> {
         Body {
             raw: Rc::new(UnsafeCell::new(BodyRaw::new(mass, moment)))
         }
     }
 
     // TODO: hide doc
-    pub unsafe fn duplicate(&mut self) -> Body {
-        Body {
-            raw: self.raw.clone()
-        }
+    pub unsafe fn duplicate(&mut self) -> Body<Void> {
+        use std::mem::transmute;
+        transmute( Body { raw: self.raw.clone() })
     }
 
     // TODO: hide doc
-    pub unsafe fn cp_body(&mut self) -> *mut chip::cpBody {
+    pub unsafe fn get_cp_body(&mut self) -> *mut chip::cpBody {
         &mut (*self.raw.get()).cp_body
     }
 
@@ -133,12 +136,13 @@ impl Body {
     );
 }
 
-impl BodyRaw {
-    fn new(mass: f64, moment: f64) -> BodyRaw {
+impl <T> BodyRaw<T> {
+    fn new(mass: f64, moment: f64) -> BodyRaw<T> {
         unsafe {
             let mut ret = BodyRaw {
                 cp_body: mem::uninitialized(),
-                user_data: None
+                user_data: None,
+                _phantom: PhantomData
             };
             chip::cpBodyInit(&mut ret.cp_body, mass, moment);
             ret
@@ -285,7 +289,7 @@ impl BodyRaw {
     // fn setPositionUpdateFunc
 }
 
-impl UserData for BodyRaw {
+impl <T: 'static> UserData<T> for BodyRaw<T> {
     fn get_userdata_box(&self) -> &Option<Box<Any>> {
         &self.user_data
     }
@@ -294,7 +298,8 @@ impl UserData for BodyRaw {
     }
 }
 
-impl Drop for BodyRaw {
+#[unsafe_destructor]
+impl <T> Drop for BodyRaw<T> {
     fn drop(&mut self) {
         unsafe {
             chip::cpBodyDestroy(&mut self.cp_body);
