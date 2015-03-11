@@ -15,8 +15,8 @@ fn main() {
     let ball_mass = 1.0;
     let ball_pos = (0.0, 15.0);
     let ball_moment = moment_of_circle(ball_mass, ball_radius, 0.0);
-    let floor_start = (-20.0, 5.0);
-    let floor_end = (20.0, -5.0);
+    let floor_start = (-20.0, 0.0);
+    let floor_end = (20.0, 0.0);
     let floor_radius = 0.0;
     let zero = (0.0, 0.0);
     let time_step = 1.0 / 60.0;
@@ -56,7 +56,6 @@ fn main() {
         y_coords.push(pos.1);
 
         println!("t: {:?}, p: {:?}, v: {:?}", time, pos, vel);
-        println!("{:?}", space.gravity());
     }
 
     let min = y_coords.iter()
@@ -68,6 +67,5 @@ fn main() {
         let s: String = ::std::iter::repeat(' ').take(coord).collect();
         println!("{}#", s);
     }
-
 }
 
