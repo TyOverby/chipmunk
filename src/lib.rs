@@ -59,7 +59,7 @@ macro_rules! forward {
     };
 }
 
-mod util;
+pub mod util;
 pub mod user_data;
 
 pub mod space;

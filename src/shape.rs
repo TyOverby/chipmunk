@@ -41,6 +41,12 @@ impl <T> Shape<T> {
         }
     }
 
+    pub fn new_segment<A>(body: &mut Body<A>, start: (f64, f64), end: (f64, f64), radius: f64) -> Shape<T> {
+        Shape {
+            raw: Rc::new(UnsafeCell::new(ShapeRaw::new_segment(body, start, end, radius)))
+        }
+    }
+
     // TODO: hide from docs
     pub fn get_cp_shape(&mut self) -> *mut chip::cpShape {
         unsafe {
@@ -130,6 +136,19 @@ impl <T> ShapeRaw<T> {
         unsafe {
             ShapeRaw {
                 cp_shape: chip::cpBoxShapeNew(body.get_cp_body(), width, height, corner_radius),
+                user_data: None,
+                _attached_body: body.duplicate(),
+                _phantom: PhantomData
+            }
+        }
+    }
+
+    fn new_segment<A>(body: &mut Body<A>, start: (f64, f64), end: (f64, f64), radius: f64) -> ShapeRaw<T> {
+        let start = chip::cpv(start.0, start.1);
+        let end = chip::cpv(end.0, end.1);
+        unsafe {
+            ShapeRaw {
+                cp_shape: chip::cpSegmentShapeNew(body.get_cp_body(), start, end, radius),
                 user_data: None,
                 _attached_body: body.duplicate(),
                 _phantom: PhantomData

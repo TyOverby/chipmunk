@@ -27,6 +27,18 @@ impl <T> Body<T> {
         }
     }
 
+    pub fn new_kinematic() -> Body<T> {
+        Body {
+            raw: Rc::new(UnsafeCell::new(BodyRaw::new_kinematic()))
+        }
+    }
+
+    pub fn new_static() -> Body<T> {
+        Body {
+            raw: Rc::new(UnsafeCell::new(BodyRaw::new_static()))
+        }
+    }
+
     // TODO: hide doc
     pub unsafe fn duplicate(&mut self) -> Body<Void> {
         use std::mem::transmute;
@@ -140,13 +152,29 @@ impl <T> BodyRaw<T> {
     fn new(mass: f64, moment: f64) -> BodyRaw<T> {
         unsafe {
             let mut ret = BodyRaw {
-                cp_body: mem::uninitialized(),
+                cp_body: mem::zeroed(),
                 user_data: None,
                 _phantom: PhantomData
             };
             chip::cpBodyInit(&mut ret.cp_body, mass, moment);
             ret
         }
+    }
+
+    fn new_kinematic() -> BodyRaw<T> {
+        let mut res = BodyRaw::new(0.0, 0.0);
+        unsafe {
+            chip::cpBodySetType(&mut res.cp_body, chip::CP_BODY_TYPE_KINEMATIC);
+        }
+        res
+    }
+
+    fn new_static() -> BodyRaw<T> {
+        let mut res = BodyRaw::new(0.0, 0.0);
+        unsafe {
+            chip::cpBodySetType(&mut res.cp_body, chip::CP_BODY_TYPE_STATIC);
+        }
+        res
     }
 
     fn angle_rad(&self) -> f64 {

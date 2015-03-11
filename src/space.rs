@@ -65,6 +65,13 @@ impl <T> Space<T> {
         }
     }
 
+    forward!(step(&mut self, timestep: f64) -> (),
+    /// Moves the simulation forward by one tick.
+    ///
+    /// `timestep` is the amount of time ellapsed in the simulation since
+    /// the last time `step()` was called.
+    );
+
     forward!(gravity(&self) -> (f64, f64),
     /// Returns the global gravity for all rigid bodies in this space.
     ///
@@ -207,7 +214,7 @@ impl <T> SpaceRaw <T> {
     fn new() -> SpaceRaw<T> {
         unsafe {
             let mut spr = SpaceRaw {
-                cp_space: mem::uninitialized(),
+                cp_space: mem::zeroed(),
                 user_data: None,
                 bodies: Vec::new(),
                 shapes: Vec::new(),
@@ -334,6 +341,12 @@ impl <T> SpaceRaw <T> {
     fn set_sleep_time_threshold(&mut self, threshold: f64) {
         unsafe {
             chip::cpSpaceSetSleepTimeThreshold(&mut self.cp_space, threshold);
+        }
+    }
+
+    fn step(&mut self, timestep: f64) {
+        unsafe {
+            chip::cpSpaceStep(&mut self.cp_space, timestep);
         }
     }
 }
