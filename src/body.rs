@@ -20,24 +20,27 @@ pub struct Body<T> {
     raw: Rc<UnsafeCell<BodyRaw<T>>>
 }
 
-impl <T> Body<T> {
-    pub fn new(mass: f64, moment: f64) -> Body<T> {
+impl Body<Void> {
+    pub fn new(mass: f64, moment: f64) -> Body<Void> {
         Body {
             raw: Rc::new(UnsafeCell::new(BodyRaw::new(mass, moment)))
         }
     }
 
-    pub fn new_kinematic() -> Body<T> {
+    pub fn new_kinematic() -> Body<Void> {
         Body {
             raw: Rc::new(UnsafeCell::new(BodyRaw::new_kinematic()))
         }
     }
 
-    pub fn new_static() -> Body<T> {
+    pub fn new_static() -> Body<Void> {
         Body {
             raw: Rc::new(UnsafeCell::new(BodyRaw::new_static()))
         }
     }
+}
+
+impl <T> Body<T> {
 
     // TODO: hide doc
     pub unsafe fn duplicate(&mut self) -> Body<Void> {

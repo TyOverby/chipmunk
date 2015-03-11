@@ -55,12 +55,12 @@ fn main() {
     let time_step = 1.0 / 60.0;
 
     // The space contains everything in the simulation.
-    let mut space = <Space<()>>::new();
+    let mut space = Space::new();
     space.set_gravity(gravity.0, gravity.1);
 
     // Set up a floor for our ball to bounce off of.
-    let mut floor_body = <Body<()>>::new_static();
-    let mut floor_shape = <Shape<()>>::new_segment(
+    let mut floor_body = Body::new_static();
+    let mut floor_shape = Shape::new_segment(
         &mut floor_body, floor_start, floor_end, floor_radius);
 
     floor_shape.set_friction(floor_friction);
@@ -69,8 +69,8 @@ fn main() {
 
 
     // Add a bouncing ball to the scene.
-    let mut ball_body = <Body<()>>::new(ball_mass, ball_moment);
-    let mut ball_shape = <Shape<()>>::new_circle(&mut ball_body, ball_radius, zero);
+    let mut ball_body = Body::new(ball_mass, ball_moment);
+    let mut ball_shape = Shape::new_circle(&mut ball_body, ball_radius, zero);
 
     ball_body.set_position(ball_pos.0, ball_pos.1);
     ball_shape.set_friction(ball_friction);
@@ -79,6 +79,7 @@ fn main() {
     space.add_shape(&mut ball_shape);
 
     let mut y_coords = vec![];
+
 
     // Run the simulation!
     for i in 0 .. 60 {

@@ -24,13 +24,15 @@ pub struct Space<T=Void> {
     raw: Rc<UnsafeCell<SpaceRaw<T>>>,
 }
 
-impl <T> Space<T> {
-    pub fn new() -> Space<T> {
+impl Space<Void> {
+    pub fn new() -> Space<Void> {
         Space {
             raw: Rc::new(UnsafeCell::new(SpaceRaw::new()))
         }
     }
+}
 
+impl <T> Space<T> {
     pub fn duplicate_homogenous(&mut self) -> Space<Void> {
         use std::mem::transmute;
         unsafe { transmute(Space{ raw: self.raw.clone()}) }

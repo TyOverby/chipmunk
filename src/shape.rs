@@ -22,31 +22,33 @@ struct ShapeRaw<T> {
     _phantom: PhantomData<T>
 }
 
-impl <T> Shape<T> {
-    pub fn new_circle<A>(body: &mut Body<A>, radius: f64, offset: (f64, f64)) -> Shape<T> {
+impl Shape<Void> {
+    pub fn new_circle<A>(body: &mut Body<A>, radius: f64, offset: (f64, f64)) -> Shape<Void> {
         Shape {
             raw: Rc::new(UnsafeCell::new(ShapeRaw::new_circle(body, radius, offset)))
         }
     }
 
-    pub fn new_box<A>(body: &mut Body<A>, width: f64, height: f64, corner_radius: f64) -> Shape<T> {
+    pub fn new_box<A>(body: &mut Body<A>, width: f64, height: f64, corner_radius: f64) -> Shape<Void> {
         Shape {
             raw: Rc::new(UnsafeCell::new(ShapeRaw::new_box(body, width, height, corner_radius)))
         }
     }
 
-    pub fn new_poly<A>(body: &mut Body<A>, vertices:&[(f64, f64)], radius: f64) -> Shape<T> {
+    pub fn new_poly<A>(body: &mut Body<A>, vertices:&[(f64, f64)], radius: f64) -> Shape<Void> {
         Shape {
             raw: Rc::new(UnsafeCell::new(ShapeRaw::new_poly(body, vertices, radius)))
         }
     }
 
-    pub fn new_segment<A>(body: &mut Body<A>, start: (f64, f64), end: (f64, f64), radius: f64) -> Shape<T> {
+    pub fn new_segment<A>(body: &mut Body<A>, start: (f64, f64), end: (f64, f64), radius: f64) -> Shape<Void> {
         Shape {
             raw: Rc::new(UnsafeCell::new(ShapeRaw::new_segment(body, start, end, radius)))
         }
     }
+}
 
+impl <T> Shape<T> {
     // TODO: hide from docs
     pub fn get_cp_shape(&mut self) -> *mut chip::cpShape {
         unsafe {
