@@ -78,6 +78,7 @@ fn main() {
     space.add_body(&mut ball_body);
     space.add_shape(&mut ball_shape);
 
+    let mut y_coords = vec![];
 
     // Run the simulation!
     for i in 0 .. 60 {
@@ -87,6 +88,16 @@ fn main() {
         println!("t: {:?}, p: {:?}, v: {:?}", time, pos, vel);
         println!("{:?}", space.gravity());
         space.step(time_step);
+        y_coords.push(pos.1);
     }
+
+    let min = y_coords.iter().cloned().map(|a| a as i32).min_max().into_option().unwrap().0;
+
+    for coord in y_coords {
+        let coord = ((coord - min as f64) * 10.0) as usize;
+        let s: String = ::std::iter::repeat(' ').take(coord).collect();
+        println!("{}#", s);
+    }
+
 }
 
