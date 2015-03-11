@@ -1,44 +1,11 @@
+#![feature(core)]
+
 extern crate chipmunk;
 
 use chipmunk::space::Space;
 use chipmunk::body::Body;
 use chipmunk::shape::Shape;
 use chipmunk::util::*;
-
-/*
- *
-    let gravity = cpv(0.0, -100.0);
-    let zero = cpv(0.0, 0.0);
-
-    let space = cpSpaceNew();
-    cpSpaceSetGravity(space, gravity);
-    let ground = cpSegmentShapeNew((*space).staticBody,
-                                   cpv(-20.0, 5.0),
-                                   cpv(20.0, -5.0),
-                                   0.0);
-  cpShapeSetFriction(ground, 1.0);
-  cpSpaceAddShape(space, ground);
-
-  let radius = 5.0;
-  let mass = 1.0;
-
-  let moment = cpMomentForCircle(mass, 0.0, radius, zero);
-
-  let ballbody = cpSpaceAddBody(space, cpBodyNew(mass, moment));
-  cpBodySetPosition(ballbody, cpv(0.0, 15.0));
-
-  let ballShape = cpSpaceAddShape(space, cpCircleShapeNew(ballbody, radius, zero));
-  cpShapeSetFriction(ballShape, 0.7);
-
-  let timeStep = 1.0 / 60.0;
-  for i in 0 .. 60 {
-      let time = timeStep * i as f32;
-      let pos = cpBodyGetPosition(ballbody);
-      let vel = cpBodyGetVelocity(ballbody);
-      println!("Time: {:?}, Pos: {:?}, Vel: {:?}", time, pos, vel);
-      cpSpaceStep(space, timeStep as f64);
-  }
-  */
 
 fn main() {
     let gravity = (0.0, -100.0);
@@ -80,20 +47,22 @@ fn main() {
 
     let mut y_coords = vec![];
 
-
     // Run the simulation!
     for i in 0 .. 60 {
         let time = time_step * (i as f64);
         let pos = ball_body.position();
         let vel = ball_body.velocity();
-        println!("t: {:?}, p: {:?}, v: {:?}", time, pos, vel);
-        println!("{:?}", space.gravity());
         space.step(time_step);
         y_coords.push(pos.1);
+
+        println!("t: {:?}, p: {:?}, v: {:?}", time, pos, vel);
+        println!("{:?}", space.gravity());
     }
 
-    let min = y_coords.iter().cloned().map(|a| a as i32).min_max().into_option().unwrap().0;
-
+    let min = y_coords.iter()
+                      .cloned()
+                      .map(|a| a as i32)
+                      .min_max().into_option().unwrap().0;
     for coord in y_coords {
         let coord = ((coord - min as f64) * 10.0) as usize;
         let s: String = ::std::iter::repeat(' ').take(coord).collect();
