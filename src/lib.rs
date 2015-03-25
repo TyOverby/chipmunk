@@ -1,6 +1,6 @@
 #![feature(core, unsafe_destructor)]
 
-extern crate "chipmunk-sys" as chip;
+extern crate chipmunk_sys as chip;
 extern crate void;
 
 macro_rules! forward {
