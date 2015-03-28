@@ -1,7 +1,7 @@
 use std::any::Any;
 use std::rc::Rc;
 use std::cell::UnsafeCell;
-use std::mem::transmute;
+use std::mem::{transmute, zeroed};
 use std::marker::PhantomData;
 
 use super::user_data::UserData;
@@ -69,6 +69,73 @@ impl <T: 'static> UserData<T> for Shape<T> {
                 Shape::Segment(ref p) => &mut(*p.raw.get()).user_data,
             }
         }
+    }
+}
+
+impl Shape<Void> {
+    pub fn new_segment(body: &mut Body, start: (f64, f64), end: (f64, f64), radius: f64) -> Shape<Void> {
+        let mut shape = SegmentShapeRaw {
+            cp_shape: unsafe { zeroed() },
+            user_data: None,
+            _attached_body: unsafe { body.duplicate() },
+            _phantom: PhantomData
+        };
+        let a = chip::cpv(start.0, start.1);
+        let b = chip::cpv(end.0, end.1);
+        unsafe {
+            chip::cpSegmentShapeInit(&mut shape.cp_shape, body.get_cp_body(), a, b, radius);
+        }
+
+        Shape::Segment(SegmentShape{ raw: Rc::new(UnsafeCell::new(shape)) })
+    }
+
+    pub fn new_circle(body: &mut Body, radius: f64, offset: (f64, f64)) -> Shape<Void> {
+        let mut shape = CircleShapeRaw {
+            cp_shape: unsafe { zeroed() },
+            user_data: None,
+            _attached_body: unsafe { body.duplicate() },
+            _phantom: PhantomData
+        };
+
+        let offset = chip::cpv(offset.0, offset.1);
+        unsafe {
+            chip::cpCircleShapeInit(&mut shape.cp_shape, body.get_cp_body(), radius, offset);
+        }
+
+        Shape::Circle(CircleShape{ raw: Rc::new(UnsafeCell::new(shape)) })
+    }
+
+    pub fn new_poly(body: &mut Body, points: &[(f64)], radius: f64) -> Shape<Void> {
+        let mut shape = PolyShapeRaw {
+            cp_shape: unsafe { zeroed() },
+            user_data: None,
+            _attached_body: unsafe { body.duplicate() },
+            _phantom: PhantomData
+        };
+
+        unsafe {
+            chip::cpPolyShapeInitRaw(&mut shape.cp_shape, body.get_cp_body(),
+                                    points.len() as i32, transmute(points.as_ptr()),
+                                    radius);
+        }
+
+        Shape::Poly(PolyShape{ raw: Rc::new(UnsafeCell::new(shape)) })
+    }
+
+    pub fn new_box(body: &mut Body, width: f64, height: f64, radius: f64) -> Shape<Void> {
+        let mut shape = PolyShapeRaw {
+            cp_shape: unsafe { zeroed() },
+            user_data: None,
+            _attached_body: unsafe { body.duplicate() },
+            _phantom: PhantomData
+        };
+
+        unsafe {
+            chip::cpBoxShapeInit(&mut shape.cp_shape, body.get_cp_body(),
+                                    width, height, radius);
+        }
+
+        Shape::Poly(PolyShape{ raw: Rc::new(UnsafeCell::new(shape)) })
     }
 }
 
