@@ -12,7 +12,7 @@ use super::body::Body;
 use super::shape::Shape;
 
 
-struct SpaceRaw<T=Void> {
+struct SpaceRaw<T = Void> {
     cp_space: chip::cpSpace,
     user_data: Option<Box<Any>>,
     bodies: Vec<Body<Void>>,
@@ -237,7 +237,7 @@ impl <T> SpaceRaw <T> {
     fn add_shape<B>(&mut self, shape: &mut Shape<B>) {
         unsafe {
             self.shapes.push(shape.duplicate());
-            chip::cpSpaceAddShape(&mut self.cp_space, shape.get_cp_shape());
+            chip::cpSpaceAddShape(&mut self.cp_space, shape.get_cp_shape_mut());
         }
     }
 

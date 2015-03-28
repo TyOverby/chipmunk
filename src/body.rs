@@ -10,13 +10,13 @@ use chip;
 
 use void::Void;
 
-struct BodyRaw<T> {
+struct BodyRaw<T = Void> {
     cp_body: chip::cpBody,
     user_data: Option<Box<Any>>,
     _phantom: PhantomData<T>
 }
 
-pub struct Body<T> {
+pub struct Body<T = Void> {
     raw: Rc<UnsafeCell<BodyRaw<T>>>
 }
 
