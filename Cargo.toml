@@ -8,9 +8,12 @@ license = "MIT"
 repository = "https://github.com/TyOverby/chipmunk"
 description = "Rust bindings to the chipmunk-2d physics engine.  This crate is a work in progress."
 
+[dependencies.chipmunk-sys]
+path = "../chipmunk-sys"
+
 [dependencies]
 void = "*"
-chipmunk-sys = "*"
+#chipmunk-sys = "*"
 
 [dev-dependencies]
 lux = "*"

@@ -12,7 +12,7 @@ use super::body::Body;
 use super::shape::Shape;
 
 
-struct SpaceRaw<T = Void> {
+struct SpaceRaw<T=Void> {
     cp_space: chip::cpSpace,
     user_data: Option<Box<Any>>,
     bodies: Vec<Body<Void>>,

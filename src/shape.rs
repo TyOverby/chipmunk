@@ -11,39 +11,39 @@ use chip;
 
 use void::Void;
 
-pub enum Shape<T = Void> {
+pub enum Shape<T=Void> {
     Poly(PolyShape<T>),
     Circle(CircleShape<T>),
     Segment(SegmentShape<T>)
 }
 
-pub struct PolyShape<T = Void> {
+pub struct PolyShape<T=Void> {
     raw: Rc<UnsafeCell<PolyShapeRaw<T>>>
 }
 
-pub struct CircleShape<T = Void> {
+pub struct CircleShape<T=Void> {
     raw: Rc<UnsafeCell<CircleShapeRaw<T>>>
 }
 
-pub struct SegmentShape<T = Void> {
+pub struct SegmentShape<T=Void> {
     raw: Rc<UnsafeCell<SegmentShapeRaw<T>>>
 }
 
-struct PolyShapeRaw<T = Void> {
+struct PolyShapeRaw<T=Void> {
     cp_shape: chip::cpPolyShape,
     user_data: Option<Box<Any>>,
     _attached_body: Body<Void>,
     _phantom: PhantomData<T>
 }
 
-struct CircleShapeRaw<T = Void> {
+struct CircleShapeRaw<T=Void> {
     cp_shape: chip::cpCircleShape,
     user_data: Option<Box<Any>>,
     _attached_body: Body<Void>,
     _phantom: PhantomData<T>
 }
 
-struct SegmentShapeRaw<T = Void> {
+struct SegmentShapeRaw<T=Void> {
     cp_shape: chip::cpSegmentShape,
     user_data: Option<Box<Any>>,
     _attached_body: Body<Void>,
