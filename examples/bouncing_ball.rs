@@ -1,5 +1,3 @@
-#![feature(core)]
-
 extern crate chipmunk;
 
 use chipmunk::space::Space;
@@ -61,7 +59,7 @@ fn main() {
     let min = y_coords.iter()
                       .cloned()
                       .map(|a| a as i32)
-                      .min_max().into_option().unwrap().0;
+                      .min().unwrap();
     for coord in y_coords {
         let coord = ((coord - min as f64) * 10.0) as usize;
         let s: String = ::std::iter::repeat(' ').take(coord).collect();

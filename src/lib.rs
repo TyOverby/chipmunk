@@ -1,5 +1,3 @@
-#![feature(core, unsafe_destructor)]
-
 extern crate chipmunk_sys as chip;
 extern crate void;
 

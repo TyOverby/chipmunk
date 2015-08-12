@@ -320,7 +320,7 @@ impl <T> BodyRaw<T> {
     // fn setPositionUpdateFunc
 }
 
-impl <T: 'static> UserData<T> for BodyRaw<T> {
+impl <T: 'static + Any> UserData<T> for BodyRaw<T> {
     fn get_userdata_box(&self) -> &Option<Box<Any>> {
         &self.user_data
     }
@@ -329,7 +329,6 @@ impl <T: 'static> UserData<T> for BodyRaw<T> {
     }
 }
 
-#[unsafe_destructor]
 impl <T> Drop for BodyRaw<T> {
     fn drop(&mut self) {
         unsafe {

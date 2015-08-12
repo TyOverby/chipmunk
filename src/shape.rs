@@ -50,7 +50,7 @@ struct SegmentShapeRaw<T = Void> {
     _phantom: PhantomData<T>
 }
 
-impl <T: 'static> UserData<T> for Shape<T> {
+impl <T: 'static + Any> UserData<T> for Shape<T> {
     fn get_userdata_box(&self) -> &Option<Box<Any>> {
         unsafe {
             match *self {
@@ -162,8 +162,7 @@ impl <T> Shape<T> {
 
     pub fn density(&self) -> f64 {
         unsafe {
-            let this: &mut Shape<T>  = transmute(self);
-            chip::cpShapeGetDensity(this.get_cp_shape_mut())
+            chip::cpShapeGetDensity(self.get_cp_shape())
         }
     }
 
@@ -181,8 +180,7 @@ impl <T> Shape<T> {
 
     pub fn mass(&self) -> f64 {
         unsafe {
-            let this: &mut Shape<T>  = transmute(self);
-            chip::cpShapeGetMass(this.get_cp_shape_mut())
+            chip::cpShapeGetMass(self.get_cp_shape())
         }
     }
 
@@ -357,7 +355,6 @@ impl <T> SegmentShapeRaw<T> {
     }
 }
 
-#[unsafe_destructor]
 impl <T> Drop for SegmentShapeRaw<T> {
     fn drop(&mut self) {
         unsafe {
@@ -366,7 +363,6 @@ impl <T> Drop for SegmentShapeRaw<T> {
     }
 }
 
-#[unsafe_destructor]
 impl <T> Drop for CircleShapeRaw<T> {
     fn drop(&mut self) {
         unsafe {
@@ -375,7 +371,6 @@ impl <T> Drop for CircleShapeRaw<T> {
     }
 }
 
-#[unsafe_destructor]
 impl <T> Drop for PolyShapeRaw<T> {
     fn drop(&mut self) {
         unsafe {

@@ -1,6 +1,6 @@
 use std::any::Any;
 
-pub trait UserData<T: 'static> {
+pub trait UserData<T: 'static + Any> {
     fn get_userdata_box(&self) -> &Option<Box<Any>>;
     fn get_userdata_mut_box(&mut self) -> &mut Option<Box<Any>>;
 

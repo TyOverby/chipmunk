@@ -38,7 +38,7 @@ impl <T> Space<T> {
         unsafe { transmute(Space{ raw: self.raw.clone()}) }
     }
 
-    pub fn swap_userdata<A: 'static>(self, new_userdata: A) -> Space<A> {
+    pub fn swap_userdata<A: 'static + Any>(self, new_userdata: A) -> Space<A> {
         use std::mem::transmute;
         let mut n: Space<A> = unsafe { transmute(Space{ raw: self.raw.clone()}) };
         n.set_user_data(new_userdata);
@@ -190,7 +190,7 @@ impl <T> Space<T> {
 
 }
 
-impl <T: 'static> UserData<T> for SpaceRaw<T> {
+impl <T: 'static + Any> UserData<T> for SpaceRaw<T> {
     fn get_userdata_box(&self) -> &Option<Box<Any>> {
         &self.user_data
     }
@@ -199,7 +199,7 @@ impl <T: 'static> UserData<T> for SpaceRaw<T> {
     }
 }
 
-impl <T: 'static> UserData<T> for Space<T> {
+impl <T: 'static + Any> UserData<T> for Space<T> {
     fn get_userdata_box(&self) -> &Option<Box<Any>> {
         unsafe {
             (*self.raw.get()).get_userdata_box()
@@ -353,7 +353,6 @@ impl <T> SpaceRaw <T> {
     }
 }
 
-#[unsafe_destructor]
 impl <T> Drop for SpaceRaw<T> {
     fn drop(&mut self) {
         // TODO: destroy all bodies and constraints that are attached to this.
