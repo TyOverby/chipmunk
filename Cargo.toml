@@ -11,3 +11,6 @@ description = "Rust bindings to the chipmunk-2d physics engine.  This crate is a
 [dependencies]
 void = "*"
 chipmunk-sys = "*"
+
+[dev-dependencies]
+lux = "*"
