@@ -67,6 +67,18 @@ impl <T> Space<T> {
         }
     }
 
+    pub fn remove_body<A>(&mut self, body: Body<A>){
+        unsafe {
+            (*self.raw.get()).remove_body(body);
+        }
+    }
+
+    pub fn remove_shape<A>(&mut self, shape: Shape<A>){
+        unsafe {
+            (*self.raw.get()).remove_shape(shape);
+        }
+    }
+
     forward!(step(&mut self, timestep: f64) -> (),
     /// Moves the simulation forward by one tick.
     ///
@@ -238,6 +250,26 @@ impl <T> SpaceRaw <T> {
         unsafe {
             self.shapes.push(shape.duplicate());
             chip::cpSpaceAddShape(&mut self.cp_space, shape.get_cp_shape_mut());
+        }
+    }
+
+    fn remove_body<B>(&mut self, mut body: Body<B>) {
+        unsafe {
+            let pos = self.bodies.iter_mut().position(|e| e.get_cp_body() == body.get_cp_body());
+            if let Some(pos) = pos {
+                self.bodies.remove(pos);
+            }
+            chip::cpSpaceRemoveBody(&mut self.cp_space, body.get_cp_body());
+        }
+    }
+
+    fn remove_shape<B>(&mut self, mut shape: Shape<B>) {
+        unsafe {
+            let pos = self.shapes.iter_mut().position(|e| e.get_cp_shape() == shape.get_cp_shape());
+            if let Some(pos) = pos {
+                self.shapes.remove(pos);
+            }
+            chip::cpSpaceRemoveShape(&mut self.cp_space, shape.get_cp_shape_mut());
         }
     }
 

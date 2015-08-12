@@ -8,6 +8,8 @@ use super::user_data::UserData;
 use chip;
 use void::Void;
 
+// TODO: somehow you need to allow the arbiters to return Bodies
+
 pub struct Arbiter<T=Void> {
     raw: Rc<UnsafeCell<ArbiterRaw<T>>>
 }
